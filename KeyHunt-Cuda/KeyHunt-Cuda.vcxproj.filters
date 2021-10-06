@@ -59,6 +59,9 @@
     <ClCompile Include="hash\keccak160.cpp">
       <Filter>HASH</Filter>
     </ClCompile>
+    <ClCompile Include="Sort.cpp">
+      <Filter>KEYHUNT</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bloom.h">

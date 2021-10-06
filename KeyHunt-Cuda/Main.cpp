@@ -13,7 +13,7 @@
 #include <unistd.h>
 #endif
 
-#define RELEASE "1.07"
+#define RELEASE "1.08"
 
 using namespace std;
 bool should_exit = false;
@@ -22,7 +22,7 @@ bool should_exit = false;
 void usage()
 {
 	printf("KeyHunt-Cuda [OPTIONS...] [TARGETS]\n");
-	printf("Where TARGETS is one address/xpont, or multiple hashes/xpoints file\n\n");
+	printf("Where TARGETS is multiple address/xpont, or multiple hashes/xpoints file\n\n");
 
 	printf("-h, --help                               : Display this message\n");
 	printf("-c, --check                              : Check the working of the codes\n");
@@ -210,7 +210,7 @@ int main(int argc, char** argv)
 	string address = "";	// for single address mode
 	string xpoint = "";		// for single x point mode
 
-	std::vector<unsigned char> hashORxpoint;
+	std::vector<std::vector<unsigned char>> hashORxpoints;
 	bool singleAddress = false;
 	int nbCPUThread = Timer::getCoreNumber();
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 	int searchMode = 0;
 	int coinType = COIN_BTC;
 
-	hashORxpoint.clear();
+	hashORxpoints.clear();
 
 	// cmd args parsing
 	CmdParse parser;
@@ -373,83 +373,85 @@ int main(int argc, char** argv)
 			usage();
 			return -1;
 		}
-		if (searchMode != SEARCH_MODE_MA && searchMode != SEARCH_MODE_MX) {
-			printf("Error: %s\n", "Wrong search mode provided for multiple addresses or xpoints");
-			usage();
-			return -1;
-		}
 	}
 	else {
 		// read from cmdline
-		if (ops.size() != 1) {
-			printf("Error: %s\n", "Wrong args or more than one address or xpoint are provided, use inputFile for multiple addresses or xpoints");
-			usage();
-			return -1;
+		if (ops.size() > 1 && ops.at(0).size() > 30 && ops.at(0).size() < 44) {
+			searchMode = (int)SEARCH_MODE_MA;
 		}
-		if (searchMode != SEARCH_MODE_SA && searchMode != SEARCH_MODE_SX) {
-			printf("Error: %s\n", "Wrong search mode provided for single address or xpoint");
-			usage();
-			return -1;
+		else if (ops.size() > 1 && ops.at(0).size() > 43) {
+			searchMode = (int)SEARCH_MODE_MX;
 		}
-
 
 		switch (searchMode) {
 		case (int)SEARCH_MODE_SA:
-		{
-			address = ops[0];
-			if (coinType == COIN_BTC) {
-				if (address.length() < 30 || address[0] != '1') {
-					printf("Error: %s\n", "Invalid address, must have Bitcoin P2PKH address or Ethereum address");
-					usage();
-					return -1;
+		case (int)SEARCH_MODE_MA: {
+			for (int k = 0; k < ops.size(); k++) {
+				address = ops[k];
+				if (coinType == COIN_BTC) {
+					if (address.length() < 30 || address[0] != '1') {
+						printf("Error: %s\n", "Invalid address, must have Bitcoin P2PKH address or Ethereum address");
+						usage();
+						return -1;
+					}
+					else {
+						std::vector<unsigned char> hashORxpoint;
+						if (DecodeBase58(address, hashORxpoint)) {
+							hashORxpoint.erase(hashORxpoint.begin() + 0);
+							hashORxpoint.erase(hashORxpoint.begin() + 20, hashORxpoint.begin() + 24);
+							assert(hashORxpoint.size() == 20);
+							hashORxpoints.push_back(hashORxpoint);
+						}
+					}
 				}
 				else {
-					if (DecodeBase58(address, hashORxpoint)) {
-						hashORxpoint.erase(hashORxpoint.begin() + 0);
-						hashORxpoint.erase(hashORxpoint.begin() + 20, hashORxpoint.begin() + 24);
-						assert(hashORxpoint.size() == 20);
+					if (address.length() != 42 || address[0] != '0' || address[1] != 'x') {
+						printf("Error: %s\n", "Invalid Ethereum address");
+						usage();
+						return -1;
 					}
+					address.erase(0, 2);
+					std::vector<unsigned char> hashORxpoint;
+					for (int i = 0; i < 40; i += 2) {
+						uint8_t c = 0;
+						for (size_t j = 0; j < 2; j++) {
+							uint32_t c0 = (uint32_t)address[i + j];
+							uint8_t c2 = (uint8_t)strtol((char*)&c0, NULL, 16);
+							if (j == 0)
+								c2 = c2 << 4;
+							c |= c2;
+						}
+						hashORxpoint.push_back(c);
+					}
+					assert(hashORxpoint.size() == 20);
+					hashORxpoints.push_back(hashORxpoint);
 				}
 			}
-			else {
-				if (address.length() != 42 || address[0] != '0' || address[1] != 'x') {
-					printf("Error: %s\n", "Invalid Ethereum address");
+		}
+								  break;
+		case (int)SEARCH_MODE_SX:
+		case (int)SEARCH_MODE_MX: {
+			for (int k = 0; k < ops.size(); k++) {
+				unsigned char xpbytes[32];
+				xpoint = ops[k];
+				if(xpoint.size() == 66)
+					xpoint.erase(xpoint.begin() + 0);
+				Int* xp = new Int();
+				xp->SetBase16(xpoint.c_str());
+				xp->Get32Bytes(xpbytes);
+				std::vector<unsigned char> hashORxpoint;
+				for (int i = 0; i < 32; i++)
+					hashORxpoint.push_back(xpbytes[i]);
+				delete xp;
+				if (hashORxpoint.size() != 32) {
+					printf("Error: %s\n", "Invalid xpoint");
 					usage();
 					return -1;
 				}
-				address.erase(0, 2);
-				for (int i = 0; i < 40; i += 2) {
-					uint8_t c = 0;
-					for (size_t j = 0; j < 2; j++) {
-						uint32_t c0 = (uint32_t)address[i + j];
-						uint8_t c2 = (uint8_t)strtol((char*)&c0, NULL, 16);
-						if (j == 0)
-							c2 = c2 << 4;
-						c |= c2;
-					}
-					hashORxpoint.push_back(c);
-				}
-				assert(hashORxpoint.size() == 20);
+				hashORxpoints.push_back(hashORxpoint);
 			}
 		}
-		break;
-		case (int)SEARCH_MODE_SX:
-		{
-			unsigned char xpbytes[32];
-			xpoint = ops[0];
-			Int* xp = new Int();
-			xp->SetBase16(xpoint.c_str());
-			xp->Get32Bytes(xpbytes);
-			for (int i = 0; i < 32; i++)
-				hashORxpoint.push_back(xpbytes[i]);
-			delete xp;
-			if (hashORxpoint.size() != 32) {
-				printf("Error: %s\n", "Invalid xpoint");
-				usage();
-				return -1;
-			}
-		}
-		break;
+								  break;
 		default:
 			printf("Error: %s\n", "Invalid search mode for single address or xpoint");
 			usage();
@@ -457,6 +459,7 @@ int main(int argc, char** argv)
 			break;
 		}
 	}
+
 
 	if (gridSize.size() == 0) {
 		for (int i = 0; i < gpuId.size(); i++) {
@@ -530,13 +533,23 @@ int main(int argc, char** argv)
 	if (coinType == COIN_BTC) {
 		switch (searchMode) {
 		case (int)SEARCH_MODE_MA:
-			printf("BTC HASH160s : %s\n", inputFile.c_str());
+			if (ops.size() > 1) {
+				printf("BTC ADDRESSES: %s\n", "Multiple Addresses via Cmdline");
+			}
+			else {
+				printf("BTC HASH160s : %s\n", inputFile.c_str());
+			}
 			break;
 		case (int)SEARCH_MODE_SA:
 			printf("BTC ADDRESS  : %s\n", address.c_str());
 			break;
 		case (int)SEARCH_MODE_MX:
-			printf("BTC XPOINTS  : %s\n", inputFile.c_str());
+			if (ops.size() > 1) {
+				printf("BTC XPOINTS  : %s\n", "Multiple Xpoints via Cmdline");
+			}
+			else {
+				printf("BTC XPOINTS  : %s\n", inputFile.c_str());
+			}
 			break;
 		case (int)SEARCH_MODE_SX:
 			printf("BTC XPOINT   : %s\n", xpoint.c_str());
@@ -548,7 +561,12 @@ int main(int argc, char** argv)
 	else {
 		switch (searchMode) {
 		case (int)SEARCH_MODE_MA:
-			printf("ETH ADDRESSES: %s\n", inputFile.c_str());
+			if (ops.size() > 1) {
+				printf("ETH ADDRESSES: %s\n", "Multiple Addresses via Cmdline");
+			}
+			else {
+				printf("ETH ADDRESSES: %s\n", inputFile.c_str());
+			}
 			break;
 		case (int)SEARCH_MODE_SA:
 			printf("ETH ADDRESS  : 0x%s\n", address.c_str());
@@ -563,21 +581,17 @@ int main(int argc, char** argv)
 #ifdef WIN64
 	if (SetConsoleCtrlHandler(CtrlHandler, TRUE)) {
 		KeyHunt* v;
-		switch (searchMode) {
-		case (int)SEARCH_MODE_MA:
-		case (int)SEARCH_MODE_MX:
+		if (inputFile.size() > 0) {
 			v = new KeyHunt(inputFile, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
 				maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-			break;
-		case (int)SEARCH_MODE_SA:
-		case (int)SEARCH_MODE_SX:
-			v = new KeyHunt(hashORxpoint, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
+		}
+		else if (hashORxpoints.size() > 0) {
+			v = new KeyHunt(hashORxpoints, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
 				maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-			break;
-		default:
+		}
+		else {
 			printf("\n\nNothing to do, exiting\n");
 			return 0;
-			break;
 		}
 		v->Search(nbCPUThread, gpuId, gridSize, should_exit);
 		delete v;
@@ -591,21 +605,17 @@ int main(int argc, char** argv)
 #else
 	signal(SIGINT, CtrlHandler);
 	KeyHunt* v;
-	switch (searchMode) {
-	case (int)SEARCH_MODE_MA:
-	case (int)SEARCH_MODE_MX:
+	if (inputFile.size() > 0) {
 		v = new KeyHunt(inputFile, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
 			maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-		break;
-	case (int)SEARCH_MODE_SA:
-	case (int)SEARCH_MODE_SX:
-		v = new KeyHunt(hashORxpoint, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
+	}
+	else if (hashORxpoints.size() > 0) {
+		v = new KeyHunt(hashORxpoints, compMode, searchMode, coinType, gpuEnable, outputFile, useSSE,
 			maxFound, rKey, rangeStart.GetBase16(), rangeEnd.GetBase16(), should_exit);
-		break;
-	default:
+	}
+	else {
 		printf("\n\nNothing to do, exiting\n");
 		return 0;
-		break;
 	}
 	v->Search(nbCPUThread, gpuId, gridSize, should_exit);
 	delete v;

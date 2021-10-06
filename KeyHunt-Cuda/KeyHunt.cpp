@@ -6,9 +6,11 @@
 #include "IntGroup.h"
 #include "Timer.h"
 #include "hash/ripemd160.h"
+#include "Sort.h"
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <iterator>
 #include <iostream>
 #include <cassert>
 #ifndef WIN64
@@ -128,7 +130,7 @@ KeyHunt::KeyHunt(const std::string& inputFile, int compMode, int searchMode, int
 
 // ----------------------------------------------------------------------------
 
-KeyHunt::KeyHunt(const std::vector<unsigned char>& hashORxpoint, int compMode, int searchMode, int coinType,
+KeyHunt::KeyHunt(const std::vector< std::vector<unsigned char>>& hashORxpoints, int compMode, int searchMode, int coinType,
 	bool useGpu, const std::string& outputFile, bool useSSE, uint32_t maxFound, uint64_t rKey,
 	const std::string& rangeStart, const std::string& rangeEnd, bool& should_exit)
 {
@@ -150,18 +152,68 @@ KeyHunt::KeyHunt(const std::vector<unsigned char>& hashORxpoint, int compMode, i
 	secp = new Secp256K1();
 	secp->Init();
 
-	if (this->searchMode == (int)SEARCH_MODE_SA) {
-		assert(hashORxpoint.size() == 20);
-		for (size_t i = 0; i < hashORxpoint.size(); i++) {
-			((uint8_t*)hash160Keccak)[i] = hashORxpoint.at(i);
+	if (hashORxpoints.size() > 1) {
+		uint64_t N = 0;
+		int K_LENGTH = 20;
+		if (this->searchMode == (int)SEARCH_MODE_MX)
+			K_LENGTH = 32;
+
+		N = hashORxpoints.size();
+
+		DATA = (uint8_t*)malloc(N * K_LENGTH);
+		memset(DATA, 0, N * K_LENGTH);
+		for (size_t n = 0; n < hashORxpoints.size(); n++) {
+			auto hashORxpoint = hashORxpoints.at(n);
+			std::copy(hashORxpoint.begin(), hashORxpoint.end(), DATA + (n * K_LENGTH));
+		}
+		Sort::sort_buff(N, K_LENGTH, DATA);
+
+		uint8_t* buf = (uint8_t*)malloc(K_LENGTH);;
+
+		bloom = new Bloom(2 * N, 0.000001);
+
+		uint64_t i = 0;
+		printf("\n");
+		while (i < N && !should_exit) {
+			memset(buf, 0, K_LENGTH);
+			memcpy(buf, DATA + (i * K_LENGTH), K_LENGTH);
+			bloom->add(buf, K_LENGTH);
+			i++;
+		}
+		free(buf);
+		BLOOM_N = bloom->get_bytes();
+		TOTAL_COUNT = N;
+		targetCounter = i;
+		if (coinType == COIN_BTC) {
+			if (searchMode == (int)SEARCH_MODE_MA)
+				printf("Loaded       : %s Bitcoin addresses\n", formatThousands(i).c_str());
+			else if (searchMode == (int)SEARCH_MODE_MX)
+				printf("Loaded       : %s Bitcoin xpoints\n", formatThousands(i).c_str());
+		}
+		else {
+			printf("Loaded       : %s Ethereum addresses\n", formatThousands(i).c_str());
+		}
+
+		printf("\n");
+
+		bloom->print();
+	}
+	else {
+		auto hashORxpoint = hashORxpoints.at(0);
+		if (this->searchMode == (int)SEARCH_MODE_SA) {
+			assert(hashORxpoint.size() == 20);
+			for (size_t i = 0; i < hashORxpoint.size(); i++) {
+				((uint8_t*)hash160Keccak)[i] = hashORxpoint.at(i);
+			}
+		}
+		else if (this->searchMode == (int)SEARCH_MODE_SX) {
+			assert(hashORxpoint.size() == 32);
+			for (size_t i = 0; i < hashORxpoint.size(); i++) {
+				((uint8_t*)xpoint)[i] = hashORxpoint.at(i);
+			}
 		}
 	}
-	else if (this->searchMode == (int)SEARCH_MODE_SX) {
-		assert(hashORxpoint.size() == 32);
-		for (size_t i = 0; i < hashORxpoint.size(); i++) {
-			((uint8_t*)xpoint)[i] = hashORxpoint.at(i);
-		}
-	}
+
 	printf("\n");
 
 	InitGenratorTable();
@@ -1248,7 +1300,7 @@ void KeyHunt::Search(int nbThread, std::vector<int> gpuId, std::vector<int> grid
 
 	free(params);
 
-	}
+}
 
 // ----------------------------------------------------------------------------
 

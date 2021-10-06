@@ -15,6 +15,7 @@ A lot of gratitude to all the developers whose codes has been used here.
 - Single xpoint searching with mode ```-m XPOINT```
 - Multiple xpoint searching with mode ```-m XPOINTS```
 - For XPoint[s] mode use x point of the public key, without 02 or 03 prefix(64 chars).
+- Multiple addresses for both ETH and BTC and xpoints for BTC via cmd line.
 - Cuda only.
 
 # Usage
@@ -53,7 +54,7 @@ Usage: BinSort.exe length in_file out_file
 ```
 KeyHunt-Cuda.exe -h
 KeyHunt-Cuda [OPTIONS...] [TARGETS]
-Where TARGETS is one address/xpont, or multiple hashes/xpoints file
+Where TARGETS is multiple address/xpont, or multiple hashes/xpoints file
 
 -h, --help                               : Display this message
 -c, --check                              : Check the working of the codes
@@ -467,6 +468,161 @@ Priv (HEX): E9AE4933D6
 PubK (HEX): 03A2EFA402FD5268400C77C20E574BA86409EDEDEE7C4020E4B9F0EDBEE53DE0D4
 =================================================================================
 [00:05:09] [CPU+GPU: 1006.20 Mk/s] [GPU: 1006.20 Mk/s] [C: 57.910156 %] [R: 0] [T: 318,364,450,816 (39 bit)] [F: 1]
+
+BYE
+```
+
+
+## Multiple Addresses and XPoints via cmd line 
+```
+KeyHunt-Cuda.exe -t 0 -g --gpui 0 --gpux 256,256 -m addresses --coin BTC --range 400000000:7ffffffff 1AnGm9RbLynygraiXNMfEdvSZ2BPYXLteP 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
+
+KeyHunt-Cuda v1.08
+
+COMP MODE    : COMPRESSED
+COIN TYPE    : BITCOIN
+SEARCH MODE  : Multi Address
+DEVICE       : GPU
+CPU THREAD   : 0
+GPU IDS      : 0
+GPU GRIDSIZE : 256x256
+SSE          : YES
+RKEY         : 0 Mkeys
+MAX FOUND    : 65536
+BTC ADDRESSES: Multiple Addresses via Cmdline
+OUTPUT FILE  : Found.txt
+
+Loaded       : 2 Bitcoin addresses
+
+Bloom at 000002026D9A6C30
+  Version    : 2.1
+  Entries    : 4
+  Error      : 0.0000010000
+  Bits       : 115
+  Bits/Elem  : 28.755175
+  Bytes      : 15 (0 MB)
+  Hash funcs : 20
+
+Start Time   : Wed Oct  6 10:25:33 2021
+Global start : 400000000 (35 bit)
+Global end   : 7FFFFFFFF (35 bit)
+Global range : 3FFFFFFFF (34 bit)
+
+GPU          : GPU #0 GeForce GTX 1650 (14x64 cores) Grid(256x256)
+
+[00:00:28] [CPU+GPU: 343.98 Mk/s] [GPU: 343.98 Mk/s] [C: 57.812500 %] [R: 0] [T: 9,932,111,872 (34 bit)] [F: 0]
+=================================================================================
+PubAddress: 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
+Priv (WIF): p2pkh:KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9MSNHu6VhxrnxmF
+Priv (HEX): 5AED21170
+PubK (HEX): 03F27539939EC8E4CDCC6F9EE17EBDC16231DD5ED6A34AE121F0519ADEE536F2EA
+=================================================================================
+[00:00:51] [CPU+GPU: 344.04 Mk/s] [GPU: 344.04 Mk/s] [C: 103.125000 %] [R: 0] [T: 17,716,740,096 (35 bit)] [F: 1]
+
+BYE
+```
+```
+KeyHunt-Cuda.exe -t 0 -g --gpui 0 --gpux 256,256 -m address --coin eth --range 800000000:fffffffff 0x1ffbb8f1dfc7e2308c39637e3f4b63c2362ddc6c 0x8d01341c97905956d9a3b914aa62862318f4f2ac
+
+KeyHunt-Cuda v1.08
+
+COIN TYPE    : ETHEREUM
+SEARCH MODE  : Multi Address
+DEVICE       : GPU
+CPU THREAD   : 0
+GPU IDS      : 0
+GPU GRIDSIZE : 256x256
+SSE          : NO
+RKEY         : 0 Mkeys
+MAX FOUND    : 65536
+ETH ADDRESSES: Multiple Addresses via Cmdline
+OUTPUT FILE  : Found.txt
+
+Loaded       : 2 Ethereum addresses
+
+Bloom at 000002A91E076B90
+  Version    : 2.1
+  Entries    : 4
+  Error      : 0.0000010000
+  Bits       : 115
+  Bits/Elem  : 28.755175
+  Bytes      : 15 (0 MB)
+  Hash funcs : 20
+
+Start Time   : Wed Oct  6 10:24:01 2021
+Global start : 800000000 (36 bit)
+Global end   : FFFFFFFFF (36 bit)
+Global range : 7FFFFFFFF (35 bit)
+
+GPU          : GPU #0 GeForce GTX 1650 (14x64 cores) Grid(256x256)
+
+[00:00:51] [CPU+GPU: 246.10 Mk/s] [GPU: 246.10 Mk/s] [C: 36.328125 %] [R: 0] [T: 12,482,248,704 (34 bit)] [F: 0]
+=================================================================================
+PubAddress: 0x1ffbb8f1dfc7e2308c39637e3f4b63c2362ddc6c
+Priv (HEX): AAAAAAAAA
+PubK (HEX): 191E2BD4A789E873AFFA936C7F65AB7831C503556F7CF6753F190D5A1C4A91E046AC098E6ECCC7E0D380DE6F1A5748E1FC4FC515669A8AA084D25085392DA510
+=================================================================================
+[00:01:13] [CPU+GPU: 246.18 Mk/s] [GPU: 246.18 Mk/s] [C: 52.343750 %] [R: 0] [T: 17,985,175,552 (35 bit)] [F: 1]
+=================================================================================
+PubAddress: 0x8d01341c97905956d9a3b914aa62862318f4f2ac
+Priv (HEX): BBBBBBBBB
+PubK (HEX): EBA94B484686BF530BDDFD2C0278346723238D26CEA868422F355862639CEA863AC8D1181FB7116797AAFD3FC68846D9850C9480F0F5C2191A1716F56554308F
+=================================================================================
+[00:01:15] [CPU+GPU: 245.97 Mk/s] [GPU: 245.97 Mk/s] [C: 53.906250 %] [R: 0] [T: 18,522,046,464 (35 bit)] [F: 2]
+
+BYE
+```
+```
+KeyHunt-Cuda.exe -t 0 -g --gpui 0 --gpux 256,256 -m xpoints --coin BTC --range 400000000:7ffffffff 02F6A8148A62320E149CB15C544FE8A25AB483A0095D2280D03B8A00A7FEADA13D 03F27539939EC8E4CDCC6F9EE17EBDC16231DD5ED6A34AE121F0519ADEE536F2EA
+
+KeyHunt-Cuda v1.08
+
+COMP MODE    : COMPRESSED
+COIN TYPE    : BITCOIN
+SEARCH MODE  : Multi X Points
+DEVICE       : GPU
+CPU THREAD   : 0
+GPU IDS      : 0
+GPU GRIDSIZE : 256x256
+SSE          : NO
+RKEY         : 0 Mkeys
+MAX FOUND    : 65536
+BTC XPOINTS  : Multiple Xpoints via Cmdline
+OUTPUT FILE  : Found.txt
+
+Loaded       : 2 Bitcoin xpoints
+
+Bloom at 00000204794877D0
+  Version    : 2.1
+  Entries    : 4
+  Error      : 0.0000010000
+  Bits       : 115
+  Bits/Elem  : 28.755175
+  Bytes      : 15 (0 MB)
+  Hash funcs : 20
+
+Start Time   : Wed Oct  6 10:22:48 2021
+Global start : 400000000 (35 bit)
+Global end   : 7FFFFFFFF (35 bit)
+Global range : 3FFFFFFFF (34 bit)
+
+GPU          : GPU #0 GeForce GTX 1650 (14x64 cores) Grid(256x256)
+
+[00:00:08] [CPU+GPU: 987.31 Mk/s] [GPU: 987.31 Mk/s] [C: 46.875000 %] [R: 0] [T: 8,053,063,680 (33 bit)] [F: 0]
+=================================================================================
+PubAddress: 1PWCx5fovoEaoBowAvF5k91m2Xat9bMgwb
+Priv (WIF): p2pkh:KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9MP7J9oTbu6KuRr
+Priv (HEX): 4AED21170
+PubK (HEX): 02F6A8148A62320E149CB15C544FE8A25AB483A0095D2280D03B8A00A7FEADA13D
+=================================================================================
+[00:00:10] [CPU+GPU: 986.88 Mk/s] [GPU: 986.88 Mk/s] [C: 58.593750 %] [R: 0] [T: 10,066,329,600 (34 bit)] [F: 1]
+=================================================================================
+PubAddress: 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
+Priv (WIF): p2pkh:KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9MSNHu6VhxrnxmF
+Priv (HEX): 5AED21170
+PubK (HEX): 03F27539939EC8E4CDCC6F9EE17EBDC16231DD5ED6A34AE121F0519ADEE536F2EA
+=================================================================================
+[00:00:12] [CPU+GPU: 975.54 Mk/s] [GPU: 975.54 Mk/s] [C: 69.531250 %] [R: 0] [T: 11,945,377,792 (34 bit)] [F: 2]
 
 BYE
 ```
