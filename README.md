@@ -475,7 +475,7 @@ BYE
 
 ## Multiple Addresses and XPoints via cmd line 
 ```
-KeyHunt-Cuda.exe -t 0 -g --gpui 0 --gpux 256,256 -m addresses --coin BTC --range 400000000:7ffffffff 1AnGm9RbLynygraiXNMfEdvSZ2BPYXLteP 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
+KeyHunt-Cuda.exe -t 0 -g --gpui 0 --gpux 256,256 -m addresses --coin BTC --range 400000000:7ffffffff 1PWCx5fovoEaoBowAvF5k91m2Xat9bMgwb 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
 
 KeyHunt-Cuda v1.08
 
@@ -494,7 +494,7 @@ OUTPUT FILE  : Found.txt
 
 Loaded       : 2 Bitcoin addresses
 
-Bloom at 000002026D9A6C30
+Bloom at 0000023A4F9B7410
   Version    : 2.1
   Entries    : 4
   Error      : 0.0000010000
@@ -503,21 +503,28 @@ Bloom at 000002026D9A6C30
   Bytes      : 15 (0 MB)
   Hash funcs : 20
 
-Start Time   : Wed Oct  6 10:25:33 2021
+Start Time   : Wed Oct  6 10:36:51 2021
 Global start : 400000000 (35 bit)
 Global end   : 7FFFFFFFF (35 bit)
 Global range : 3FFFFFFFF (34 bit)
 
 GPU          : GPU #0 GeForce GTX 1650 (14x64 cores) Grid(256x256)
 
-[00:00:28] [CPU+GPU: 343.98 Mk/s] [GPU: 343.98 Mk/s] [C: 57.812500 %] [R: 0] [T: 9,932,111,872 (34 bit)] [F: 0]
+[00:00:26] [CPU+GPU: 337.67 Mk/s] [GPU: 337.67 Mk/s] [C: 52.343750 %] [R: 0] [T: 8,992,587,776 (34 bit)] [F: 0]
+=================================================================================
+PubAddress: 1PWCx5fovoEaoBowAvF5k91m2Xat9bMgwb
+Priv (WIF): p2pkh:KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9MP7J9oTbu6KuRr
+Priv (HEX): 4AED21170
+PubK (HEX): 02F6A8148A62320E149CB15C544FE8A25AB483A0095D2280D03B8A00A7FEADA13D
+=================================================================================
+[00:00:30] [CPU+GPU: 329.95 Mk/s] [GPU: 329.95 Mk/s] [C: 60.156250 %] [R: 0] [T: 10,334,765,056 (34 bit)] [F: 1]
 =================================================================================
 PubAddress: 17aeu2kjc6j4aL7Cq2RgWUYzFALyF4Jzq4
 Priv (WIF): p2pkh:KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9MSNHu6VhxrnxmF
 Priv (HEX): 5AED21170
 PubK (HEX): 03F27539939EC8E4CDCC6F9EE17EBDC16231DD5ED6A34AE121F0519ADEE536F2EA
 =================================================================================
-[00:00:51] [CPU+GPU: 344.04 Mk/s] [GPU: 344.04 Mk/s] [C: 103.125000 %] [R: 0] [T: 17,716,740,096 (35 bit)] [F: 1]
+[00:00:32] [CPU+GPU: 329.95 Mk/s] [GPU: 329.95 Mk/s] [C: 64.062500 %] [R: 0] [T: 11,005,853,696 (34 bit)] [F: 2]
 
 BYE
 ```
