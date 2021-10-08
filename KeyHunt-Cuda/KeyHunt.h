@@ -39,7 +39,7 @@ public:
 		const std::string& outputFile, bool useSSE, uint32_t maxFound, uint64_t rKey, 
 		const std::string& rangeStart, const std::string& rangeEnd, bool& should_exit);
 
-	KeyHunt(const std::vector<unsigned char>& hashORxpoint, int compMode, int searchMode, int coinType, 
+	KeyHunt(const std::vector<std::vector<unsigned char>>& hashORxpoints, int compMode, int searchMode, int coinType, 
 		bool useGpu, const std::string& outputFile, bool useSSE, uint32_t maxFound, uint64_t rKey, 
 		const std::string& rangeStart, const std::string& rangeEnd, bool& should_exit);
 
