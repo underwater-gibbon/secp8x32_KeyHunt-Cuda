@@ -925,6 +925,7 @@ void KeyHunt::FindKeyGPU(TH_PARAM * ph)
 	Int tRangeEnd = ph->rangeEnd;
 
 	GPUEngine* g;
+	// fixme разрыть это говно
 	switch (searchMode) {
 	case (int)SEARCH_MODE_MA:
 	case (int)SEARCH_MODE_MX:
